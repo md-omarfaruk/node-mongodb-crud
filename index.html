@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>ALHAMDULILLAH hey folks look my mongo database is gonna done to learn</h1>
+
+    <!-- POST DATA FROM UI AND SAVE DATA TO DATABASE -->
+    <form action="/addProduct" method="post">
+        <input type="text" placeholder="Product Name"  name="name">
+        <input type="number" placeholder="Price" name="price">
+        <input type="number" placeholder="Quantity" name="quantity">
+        <input type="submit" value="Add Product">
+    </form>
+    <div id="products">
+    </div>
+    <div id="updateProductInfo">
+    </div>
+
+<script>
+    // GET DATA ON UI FROM DATABASE
+    function loadAllProductFromDB () {
+        fetch("/products")
+    .then(res => res.json())
+    .then(pd => {
+        const container = document.getElementById("products");
+                container.innerHTML = "";
+                pd.forEach(element => {
+                    const p = document.createElement("p");
+                    p.innerHTML = `<strong>Product Name: ${element.name}</strong>, Price: ${element.price}, Quantity: ${element.quantity}
+                    <button onclick = "loadSingleProduct('${element._id}')">Update</button>
+                    <button onclick = "deleteProduct(event, '${element._id}')">Delete</button>`;
+                    container.appendChild(p);
+                });
+                
+    })
+    }
+    loadAllProductFromDB();
+
+    // LOAD SINGLE PRODUCT TO UPDATE
+    function loadSingleProduct(id) {
+        fetch(`product/${id}`)
+        .then(res => res.json())
+        .then(documents => { console.log(documents)
+            const updateProductInfo = document.getElementById("updateProductInfo");
+                    updateProductInfo.innerHTML = `<h3>Product Name: ${documents.name}</h3>
+                    Price: <input type = "number" value = "${documents.price}" id = "price">
+                    <br>
+                    Quantity: <input type = "number" value = "${documents.quantity}" id = "quantity">
+                    <br>
+                    <button onclick = "updateSingleProductInfo('${documents._id}')">Submit</button> 
+                    `;
+        })
+    }
+
+    // NOW UPDATE SINGLE PRODUCT SPECIFIC INFO
+        function updateSingleProductInfo(id) {
+            const price = document.getElementById("price").value;
+            const quantity = document.getElementById("quantity").value;
+            const product = {id, price, quantity};
+
+            fetch(`/updateProductInfo/${id}`, {
+                method: "PATCH",
+                headers: { 'Content-type': `application/json; charset=UTF-8` },
+                body: JSON.stringify(product),
+            })
+            .then(res => res.json())
+            .then(result => {
+                        if(result){
+                            loadAllProductFromDB();
+                            document.getElementById("updateProductInfo").innerHTML = "";
+                        }
+            })
+        }
+
+    // DELETE DATA FROM DATABASE BY CLICKING ON UI
+    function deleteProduct(event, id) {
+        fetch(`/delete/${id}`, {
+            method: "DELETE"
+        })
+        .then(res => res.json())
+        .then(result => {
+                    if(result){
+                        loadAllProductFromDB();
+                        //   OR OR OR OR OR
+                        // event.target.parentNode.style.display = "none";
+
+                    }
+        })
+    }
+
+</script>
+</body>
+</html>
